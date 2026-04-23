@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>BudgetPro – Family Budget Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117;--card:#161b22;--border:#21262d;
+  --green:#3fb950;--gdk:#238636;--gold:#d4a017;
+  --red:#f85149;--blue:#58a6ff;--orange:#e8895a;
+  --text:#e6edf3;--muted:#8b949e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:14px;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+
+/* ── Layout ── */
+#topbar{position:sticky;top:0;z-index:40;background:var(--card);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#content{max-width:980px;margin:0 auto;padding:18px 14px 90px}
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:40;padding:6px 0 10px}
+
+/* ── Logo ── */
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-icon{width:28px;height:28px;background:var(--gdk);border-radius:7px;display:grid;place-items:center;font-size:15px}
+.logo-text{font-family:Georgia,serif;font-weight:700;font-size:15px;white-space:nowrap}
+
+/* ── Desktop tabs ── */
+#dtabs{display:flex;gap:3px;overflow-x:auto;flex:1;min-width:0}
+.dtab{background:none;border:none;border-radius:8px;padding:6px 11px;color:var(--muted);font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:all .15s}
+.dtab.active{background:var(--gdk);color:#fff}
+.dtab:hover:not(.active){background:var(--border);color:var(--text)}
+
+/* ── Bottom nav ── */
+.nbtn{flex:1;background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;font-weight:600;padding:0}
+.nbtn.active{color:var(--green)}
+.nicon{font-size:19px;line-height:1}
+
+/* ── Buttons ── */
+.btn{background:var(--gdk);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-sm{background:var(--border);color:var(--text);border:none;border-radius:6px;padding:4px 10px;font-size:11px}
+.btn-ghost{background:none;border:none;color:var(--muted);padding:4px;display:inline-flex;align-items:center}
+.btn-ghost:hover{color:var(--red)}
+.btn-outline{background:none;border-radius:6px;padding:3px 10px;font-size:11px}
+.export-btn{background:var(--gdk);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap}
+#save-badge{font-size:11px;white-space:nowrap;color:var(--muted)}
+
+/* ── Cards & KPIs ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi-lbl{color:var(--muted);font-size:11px;margin-bottom:4px}
+.kpi-val{font-family:Georgia,serif;font-weight:700;font-size:20px}
+
+/* ── Charts ── */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:12px;margin-bottom:16px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.chart-ttl{font-size:13px;font-weight:600;margin-bottom:10px}
+
+/* ── Tables ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{color:var(--muted);font-weight:600;padding:8px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
+td{padding:7px 10px;border-bottom:1px solid #21262d33;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+
+/* ── Section header ── */
+.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.st{font-family:Georgia,serif;font-size:18px;font-weight:700}
+
+/* ── Pills ── */
+.pill{border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+
+/* ── Fields / Forms ── */
+.field{margin-bottom:10px}
+.field label{color:var(--muted);font-size:11px;display:block;margin-bottom:4px}
+.field input,.field select{background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 12px;font-size:13px;outline:none;width:100%}
+.field select option{background:var(--card)}
+
+/* ── Modal ── */
+#moverlay{position:fixed;inset:0;background:#000c;z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
+#moverlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:430px;padding:24px;max-height:90vh;overflow-y:auto}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.mttl{font-family:Georgia,serif;font-size:17px}
+.mclose{background:none;border:none;color:var(--muted);font-size:22px;line-height:1;padding:0 4px}
+
+/* ── Calendar ── */
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-mo{font-family:Georgia,serif;font-size:15px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cdl{color:var(--muted);font-size:9px;font-weight:700;text-align:center;padding-bottom:4px}
+.cc{min-height:50px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px;display:flex;flex-direction:column;gap:2px}
+.cc.today{background:#1a2a1a;border-color:var(--gdk)}
+.cnum{font-size:10px;color:var(--muted)}
+.cc.today .cnum{color:var(--green);font-weight:700}
+.cbill{border-radius:3px;padding:1px 3px;font-size:8px;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cbill.paid{background:var(--gdk)}
+.cbill.unpaid{background:#3d1a00}
+
+/* ── Bill list ── */
+.brow{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-bottom:6px}
+
+/* ── Budget ── */
+.bcat{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.bcath{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border)}
+.bitem{display:flex;align-items:center;gap:10px;padding:6px 16px;border-bottom:1px solid #21262d22;flex-wrap:wrap}
+.bitem:last-child{border-bottom:none}
+.bitem input{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 8px;font-size:12px;width:88px;outline:none}
+
+/* ── Paychecks ── */
+.pc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(275px,1fr));gap:12px;margin-top:14px}
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.pinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.pinfo{background:var(--bg);border-radius:8px;padding:8px 10px;border:1px solid var(--border)}
+.pinfolbl{color:var(--muted);font-size:10px;margin-bottom:2px}
+.pinfoval{font-size:12px;font-weight:600}
+.upcoming-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:10px}
+.ucard{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
+
+/* ── Gauges ── */
+.gauge-wrap{display:flex;align-items:center;justify-content:space-around}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:32px;color:var(--muted);font-size:13px;line-height:1.6}
+.empty-ico{font-size:30px;margin-bottom:8px}
+
+/* ── Feedback banner ── */
+#feedback-bar{background:#1a2408;border-bottom:1px solid var(--gdk);padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
+#feedback-bar a{color:var(--green);text-decoration:none;font-weight:600}
+#feedback-bar a:hover{text-decoration:underline}
+.fclose{background:none;border:none;color:var(--muted);margin-left:auto;font-size:16px;cursor:pointer;flex-shrink:0}
+
+/* ── Debt Planner ── */
+.planner-wrap{margin-top:24px;background:var(--card);border:2px solid #a78bfa44;border-radius:12px;overflow:hidden}
+.planner-hdr{background:#1e1535;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:1px solid #a78bfa33}
+.planner-title{color:#a78bfa;font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+.strategy-wrap{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.strat-btn{border:1px solid #a78bfa55;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.strat-btn.active{background:#a78bfa;color:#fff;border-color:#a78bfa}
+.strat-btn:not(.active){background:none;color:#a78bfa}
+.planner-body{padding:16px 18px}
+.extra-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.extra-row label{color:var(--muted);font-size:12px;white-space:nowrap}
+.extra-row input{background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:6px 10px;font-size:13px;outline:none;width:110px}
+.planner-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px}
+.planner-tbl th{color:var(--muted);font-weight:600;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.planner-tbl td{padding:7px 10px;border-bottom:1px solid #21262d33;vertical-align:middle}
+.planner-tbl tr.focus-row td{background:#1e1535}
+.focus-badge{background:#a78bfa;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px}
+.plan-pay{color:#a78bfa;font-weight:700}
+.plan-min{color:var(--muted)}
+.planner-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;padding-top:14px;border-top:1px solid var(--border)}
+.psum{background:var(--bg);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+.psum-lbl{color:var(--muted);font-size:10px;margin-bottom:3px}
+.psum-val{font-size:15px;font-weight:700;font-family:Georgia,serif}
+.planner-empty{text-align:center;padding:24px;color:var(--muted);font-size:13px}
+/* ── Import ── */
+.drop-zone{border:2px dashed var(--border);border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--green);background:#0d2918}
+.import-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.import-preview{overflow-x:auto;max-height:220px;overflow-y:auto;margin-top:10px;border-radius:8px;border:1px solid var(--border)}
+.import-preview table{font-size:11px}
+.import-preview th{position:sticky;top:0;background:var(--card);z-index:1}
+.import-badge{display:inline-block;background:#0d2918;color:#3fb950;border:1px solid #3fb95033;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;margin-bottom:14px}
+.step-indicator{display:flex;gap:6px;margin-bottom:16px;align-items:center}
+.step{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.step.active{color:var(--text);font-weight:600}
+.step-dot{width:18px;height:18px;border-radius:50%;background:var(--border);display:grid;place-items:center;font-size:9px;font-weight:700;flex-shrink:0}
+.step.active .step-dot{background:var(--gdk);color:#fff}
+.step.done .step-dot{background:var(--green);color:#fff}
+.sep{color:var(--border);font-size:14px}
+/* ── Responsive ── */
+@media(max-width:640px){
+  #dtabs,#save-badge{display:none}
+  .kpi-val{font-size:16px}
+}
+@media(min-width:641px){
+  #bottom-nav{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Feedback bar -->
+<div id="feedback-bar">
+  <span>🧪 <strong style="color:var(--text)">Beta Version</strong> — Help us improve! Share your thoughts:</span>
+  <a href="https://forms.gle/REPLACE_WITH_YOUR_FORM" target="_blank" id="feedback-link">Leave Feedback →</a>
+  <button class="fclose" onclick="document.getElementById('feedback-bar').style.display='none'">✕</button>
+</div>
+
+<header id="topbar">
+  <div class="logo">
+    <div class="logo-icon">💰</div>
+    <span class="logo-text">BudgetPro</span>
+  </div>
+  <div id="dtabs"></div>
+  <span id="save-badge">Auto-save on</span>
+  <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+</header>
+
+<main id="content"></main>
+
+<!-- Modal -->
+<div id="moverlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="mhdr">
+      <span class="mttl" id="mttl"></span>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <div id="mbody"></div>
+  </div>
+</div>
+
+<!-- Mobile bottom nav -->
+<nav id="bottom-nav">
+  <button class="nbtn" data-tab="dashboard"    onclick="setTab('dashboard')">   <span class="nicon">📊</span>Dashboard</button>
+  <button class="nbtn" data-tab="paychecks"    onclick="setTab('paychecks')">   <span class="nicon">💼</span>Paychecks</button>
+  <button class="nbtn" data-tab="transactions" onclick="setTab('transactions')"><span class="nicon">📋</span>Transactions</button>
+  <button class="nbtn" data-tab="calendar"     onclick="setTab('calendar')">    <span class="nicon">📅</span>Bills</button>
+  <button class="nbtn" data-tab="budget"       onclick="setTab('budget')">      <span class="nicon">💵</span>Budget</button>
+</nav>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const CC={
+  Income:     {color:'#3fb950',bg:'#0d2918'},
+  Savings:    {color:'#58a6ff',bg:'#0d1f35'},
+  Bills:      {color:'#d4a017',bg:'#2d2208'},
+  Expenses:   {color:'#e8895a',bg:'#2d1a0d'},
+  Debt:       {color:'#f85149',bg:'#2d0d0d'},
+  Investments:{color:'#a78bfa',bg:'#1e1535'},
+};
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
+const FREQS=['Weekly','Bi-weekly','Semi-monthly','Monthly','Bi-monthly','Quarterly','Annually','Other'];
+const FA={Weekly:52,'Bi-weekly':26,'Semi-monthly':24,Monthly:12,'Bi-monthly':6,Quarterly:4,Annually:1};
+const FM={Weekly:4.33,'Bi-weekly':2.17,'Semi-monthly':2,Monthly:1,'Bi-monthly':.5,Quarterly:.33,Annually:1/12};
+const SK='budgetpro-v1';
+
+// ── Seed data ──────────────────────────────────────────────────────────────
+const SEED={
+  budget:{
+    Income:[{id:1,name:'Paycheck 1',budget:3800,actual:3800},{id:2,name:'Paycheck 2',budget:3800,actual:3800}],
+    Savings:[{id:3,name:'Savings 1',budget:500,actual:420},{id:4,name:'Savings 2',budget:300,actual:300}],
+    Bills:[{id:5,name:'Rent',budget:1500,actual:1500},{id:6,name:'Cellphone',budget:120,actual:120},{id:7,name:'Car Payment',budget:489,actual:489}],
+    Expenses:[{id:8,name:'Groceries',budget:600,actual:740},{id:9,name:'Eating Out',budget:200,actual:315},{id:10,name:'Shopping',budget:150,actual:185}],
+    Debt:[{id:11,name:'Credit Card 1',budget:350,actual:350},{id:12,name:'Credit Card 2',budget:260,actual:260}],
+    Investments:[{id:13,name:'401(k)',budget:500,actual:500},{id:14,name:'Roth IRA',budget:200,actual:200}],
+  },
+  transactions:[
+    {id:1,date:'2025-04-01',merchant:'Day Job',amount:3800,cat:'Income',sub:'Paycheck 1',note:''},
+    {id:2,date:'2025-04-02',merchant:'Chase',amount:1500,cat:'Bills',sub:'Rent',note:''},
+    {id:3,date:'2025-04-05',merchant:'Walmart',amount:89.50,cat:'Expenses',sub:'Groceries',note:'Weekly run'},
+    {id:4,date:'2025-04-07',merchant:'Chase',amount:500,cat:'Savings',sub:'Savings 1',note:''},
+    {id:5,date:'2025-04-10',merchant:'T-Mobile',amount:120,cat:'Bills',sub:'Cellphone',note:''},
+    {id:6,date:'2025-04-12',merchant:'Chick-fil-A',amount:42.80,cat:'Expenses',sub:'Eating Out',note:'Family dinner'},
+    {id:7,date:'2025-04-15',merchant:'Night Job',amount:3800,cat:'Income',sub:'Paycheck 2',note:''},
+    {id:8,date:'2025-04-16',merchant:'Discover',amount:350,cat:'Debt',sub:'Credit Card 1',note:''},
+    {id:9,date:'2025-04-18',merchant:'Publix',amount:110,cat:'Expenses',sub:'Groceries',note:''},
+    {id:10,date:'2025-04-20',merchant:'Amazon',amount:68.90,cat:'Expenses',sub:'Shopping',note:''},
+  ],
+  bills:[
+    {id:1,name:'Rent',amount:1500,dueDay:2,paid:true},
+    {id:2,name:'Cellphone',amount:120,dueDay:10,paid:true},
+    {id:3,name:'Car Payment',amount:489,dueDay:14,paid:false},
+    {id:4,name:'Discover',amount:350,dueDay:16,paid:false},
+    {id:5,name:'Credit Card 2',amount:260,dueDay:22,paid:false},
+    {id:6,name:'Internet',amount:75,dueDay:25,paid:false},
+  ],
+  paychecks:[
+    {id:1,name:'Paycheck 1',source:'Day Job',frequency:'Bi-weekly',amount:3800,nextDate:'2025-04-29',notes:'Direct deposit'},
+    {id:2,name:'Paycheck 2',source:'Night Job',frequency:'Bi-weekly',amount:3800,nextDate:'2025-05-01',notes:'Direct deposit'},
+  ],
+  debtPlanner:{strategy:'avalanche',extra:0,debts:[]},
+  tab:'dashboard',
+  calMonth:new Date().getMonth(),
+  calYear:new Date().getFullYear(),
+};
+
+// ── State ──────────────────────────────────────────────────────────────────
+let S;
+try{ const d=localStorage.getItem(SK); S=d?JSON.parse(d):JSON.parse(JSON.stringify(SEED)); }
+catch(_){ S=JSON.parse(JSON.stringify(SEED)); }
+// Migrate older saved state that lacks debtPlanner
+if(!S.debtPlanner) S.debtPlanner={strategy:'avalanche',extra:0,debts:[]};
+
+let saveTimer;
+function save(){
+  clearTimeout(saveTimer);
+  badge('saving');
+  saveTimer=setTimeout(()=>{
+    try{ localStorage.setItem(SK,JSON.stringify(S)); badge('saved'); setTimeout(()=>badge('idle'),2500); }
+    catch(_){ badge('error'); }
+  },800);
+}
+
+function badge(s){
+  const el=document.getElementById('save-badge'); if(!el)return;
+  const m={saving:['Saving…','#d4a017'],saved:['Saved ✓','#3fb950'],error:['Save failed','#f85149'],idle:['Auto-save on','#8b949e']};
+  const[t,c]=m[s]||m.idle; el.textContent=t; el.style.color=c;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const fmt=n=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const pill=cat=>{ const{color,bg}=CC[cat]||{color:'#8b949e',bg:'#21262d'}; return `<span class="pill" style="background:${bg};color:${color};border-color:${color}33">${esc(cat)}</span>`; };
+const trash=()=>`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+const check=v=>v
+  ?`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`
+  :`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>`;
+
+function gauge(val,max,color,lbl){
+  const p=Math.min(val/(max||1),1),r=40,c=2*Math.PI*r;
+  return `<div style="text-align:center">
+    <svg width="100" height="100" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="#21262d" stroke-width="10"/>
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="10"
+        stroke-dasharray="${c*p} ${c}" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+      <text x="50" y="46" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="700">${fmt(val)}</text>
+      <text x="50" y="58" text-anchor="middle" fill="#8b949e" font-size="7">${lbl}</text>
+    </svg>
+  </div>`;
+}
+
+// ── Chart management ───────────────────────────────────────────────────────
+const charts={};
+function killChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+// ── Tab navigation ─────────────────────────────────────────────────────────
+function setTab(tab){
+  if(tab!=='dashboard'){killChart('bar');killChart('pie');}
+  S.tab=tab; render();
+}
+
+function render(){
+  document.querySelectorAll('.nbtn,.dtab').forEach(b=>b.classList.toggle('active',b.dataset.tab===S.tab));
+  const el=document.getElementById('content');
+  ({dashboard:rDashboard,paychecks:rPaychecks,transactions:rTransactions,calendar:rCalendar,budget:rBudget}[S.tab]||rDashboard)(el);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════════════════════════
+function rDashboard(el){
+  killChart('bar'); killChart('pie');
+  const s={};
+  Object.entries(S.budget).forEach(([cat,items])=>{
+    s[cat]={b:items.reduce((a,x)=>a+Number(x.budget),0),a:items.reduce((a,x)=>a+Number(x.actual),0)};
+  });
+  const inc=s.Income?.a||0,sav=s.Savings?.a||0,bil=s.Bills?.a||0,exp=s.Expenses?.a||0,dbt=s.Debt?.a||0,inv=s.Investments?.a||0;
+  const out=sav+bil+exp+dbt+inv;
+  const lts=Math.max(inc-out,0);
+  const ltb=Math.max((s.Income?.b||0)-((s.Savings?.b||0)+(s.Bills?.b||0)+(s.Expenses?.b||0)+(s.Debt?.b||0)+(s.Investments?.b||0)),0);
+  const upcoming=[...S.paychecks].sort((a,b)=>a.nextDate.localeCompare(b.nextDate)).slice(0,3);
+  const recent=[...S.transactions].reverse().slice(0,6);
+
+  el.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <span style="font-size:11px;color:var(--muted)">${S.lastSync?`🔄 Last synced: ${new Date(S.lastSync).toLocaleString()}`:'💡 Import a bank statement, then hit Sync to auto-fill everything.'}</span>
+    <button onclick="manualSync()" style="background:var(--border);color:var(--text);border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px">🔄 Sync Now</button>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-lbl">Total Income</div><div class="kpi-val" style="color:#3fb950">${fmt(inc)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Total Outflow</div><div class="kpi-val" style="color:#f85149">${fmt(out)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Left to Spend</div><div class="kpi-val" style="color:#d4a017">${fmt(lts)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Left to Budget</div><div class="kpi-val" style="color:#58a6ff">${fmt(ltb)}</div></div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-ttl">Budget vs. Actual</div>
+      <canvas id="bar-c" height="165"></canvas>
+      <div style="display:flex;gap:12px;margin-top:6px">
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;background:#238636;border-radius:2px;display:inline-block"></span>Budget</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;background:#3fb950;border-radius:2px;display:inline-block"></span>Actual</span>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-ttl">Spending Breakdown</div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <canvas id="pie-c" width="115" height="115" style="flex-shrink:0"></canvas>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${[['Savings',fmt(sav),'#58a6ff'],['Bills',fmt(bil),'#d4a017'],['Expenses',fmt(exp),'#e8895a'],['Debt',fmt(dbt),'#f85149'],['Investments',fmt(inv),'#a78bfa']].map(([l,v,c])=>`
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:9px;height:9px;border-radius:50%;background:${c};flex-shrink:0"></span>
+            <span style="color:var(--muted);font-size:11px;width:58px">${l}</span>
+            <span style="font-size:11px;font-weight:600">${v}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="chart-card gauge-wrap">${gauge(lts,inc,'#3fb950','Left to Spend')}${gauge(ltb,inc,'#58a6ff','Left to Budget')}</div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">Upcoming Paychecks</div>
+    <div class="upcoming-grid">
+      ${upcoming.length?upcoming.map(p=>`<div class="ucard">
+        <div style="color:#3fb950;font-weight:700;font-size:15px;font-family:Georgia,serif;margin-bottom:2px">${fmt(p.amount)}</div>
+        <div style="font-size:12px;margin-bottom:2px">${esc(p.name)}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(p.source)} · ${esc(p.nextDate)}</div>
+      </div>`).join(''):'<p style="color:var(--muted);font-size:12px">No paychecks added yet.</p>'}
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">Recent Transactions</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Merchant</th><th>Amount</th><th>Category</th><th>Sub</th></tr></thead>
+      <tbody>${recent.map(t=>`<tr>
+        <td style="color:var(--muted)">${esc(t.date)}</td>
+        <td>${esc(t.merchant)}</td>
+        <td style="color:${t.cat==='Income'?'#3fb950':'#f85149'};font-weight:600">${t.cat==='Income'?'+':'-'}${fmt(t.amount)}</td>
+        <td>${pill(t.cat)}</td>
+        <td style="color:var(--muted)">${esc(t.sub)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+  </div>`;
+
+  // Bar chart
+  charts.bar=new Chart(document.getElementById('bar-c').getContext('2d'),{
+    type:'bar',
+    data:{labels:['Income','Savings','Bills','Expenses','Debt','Investments'],datasets:[
+      {label:'Budget',data:['Income','Savings','Bills','Expenses','Debt','Investments'].map(k=>s[k]?.b||0),backgroundColor:'#238636',borderRadius:4},
+      {label:'Actual', data:['Income','Savings','Bills','Expenses','Debt','Investments'].map(k=>s[k]?.a||0),backgroundColor:'#3fb950',borderRadius:4},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},
+      scales:{x:{ticks:{color:'#8b949e',font:{size:9}},grid:{display:false},border:{display:false}},y:{display:false}}}
+  });
+
+  // Pie chart
+  charts.pie=new Chart(document.getElementById('pie-c').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['Savings','Bills','Expenses','Debt','Investments'],datasets:[{data:[sav,bil,exp,dbt,inv],backgroundColor:['#58a6ff','#d4a017','#e8895a','#f85149','#a78bfa'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},cutout:'60%'}
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PAYCHECKS
+// ════════════════════════════════════════════════════════════════════════════
+function rPaychecks(el){
+  const mo=S.paychecks.reduce((s,p)=>s+Number(p.amount)*(FM[p.frequency]||1),0);
+  const an=S.paychecks.reduce((s,p)=>s+Number(p.amount)*(FA[p.frequency]||1),0);
+  el.innerHTML=`
+  <div class="sh"><span class="st">Paycheck Tracker</span><button class="btn" onclick="openPC()">+ Add Paycheck</button></div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-lbl">Income Sources</div><div class="kpi-val">${S.paychecks.length}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Monthly Gross</div><div class="kpi-val" style="color:#3fb950">${fmt(mo)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Annual Gross</div><div class="kpi-val" style="color:#58a6ff">${fmt(an)}</div></div>
+  </div>
+  <div class="pc-grid">
+    ${S.paychecks.length?S.paychecks.map(p=>`<div class="pcard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div style="font-weight:700;font-size:15px;margin-bottom:2px">${esc(p.name)}</div><div style="color:var(--muted);font-size:12px">${esc(p.source)}</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-sm" onclick="openPC(${p.id})">Edit</button>
+          <button class="btn-ghost" onclick="delPC(${p.id})">${trash()}</button>
+        </div>
+      </div>
+      <div class="pinfo-grid">
+        <div class="pinfo"><div class="pinfolbl">Amount</div><div class="pinfoval" style="color:#3fb950">${fmt(p.amount)}</div></div>
+        <div class="pinfo"><div class="pinfolbl">Frequency</div><div class="pinfoval">${esc(p.frequency)}</div></div>
+        <div class="pinfo"><div class="pinfolbl">Next Date</div><div class="pinfoval">${esc(p.nextDate)||'—'}</div></div>
+        <div class="pinfo"><div class="pinfolbl">Notes</div><div class="pinfoval" style="color:var(--muted)">${esc(p.notes)||'—'}</div></div>
+      </div>
+    </div>`).join(''):`<div class="empty" style="grid-column:1/-1"><div class="empty-ico">💼</div>No paychecks yet.<br>Click "Add Paycheck" to start.</div>`}
+  </div>`;
+}
+
+function openPC(id){
+  const p=id?S.paychecks.find(x=>x.id===id):null;
+  const fo=FREQS.map(f=>`<option${f===(p?.frequency||'Bi-weekly')?' selected':''}>${f}</option>`).join('');
+  showModal(p?'Edit Paycheck':'New Paycheck',`
+    <div class="field"><label>Label (e.g. Paycheck 1)</label><input id="mn" value="${esc(p?.name||'')}"></div>
+    <div class="field"><label>Employer / Source</label><input id="ms" value="${esc(p?.source||'')}"></div>
+    <div class="field"><label>Amount ($)</label><input id="ma" type="number" value="${p?.amount||''}"></div>
+    <div class="field"><label>Next Pay Date</label><input id="md" type="date" value="${p?.nextDate||''}"></div>
+    <div class="field"><label>Frequency</label><select id="mf">${fo}</select></div>
+    <div class="field"><label>Notes (optional)</label><input id="mno" value="${esc(p?.notes||'')}"></div>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:6px" onclick="savePC(${id||'null'})">${p?'Save Changes':'Add Paycheck'}</button>
+  `);
+}
+
+function savePC(id){
+  const item={name:g('mn').value.trim(),source:g('ms').value.trim(),amount:Number(g('ma').value),nextDate:g('md').value,frequency:g('mf').value,notes:g('mno').value.trim()};
+  if(!item.name||!item.amount)return;
+  if(id) S.paychecks=S.paychecks.map(p=>p.id===id?{...item,id}:p);
+  else S.paychecks.push({...item,id:Date.now()});
+  closeModal();save();render();
+}
+
+function delPC(id){if(confirm('Remove this paycheck?')){S.paychecks=S.paychecks.filter(p=>p.id!==id);save();render();}}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TRANSACTIONS
+// ════════════════════════════════════════════════════════════════════════════
+function rTransactions(el){
+  el.innerHTML=`
+  <div class="sh"><span class="st">Transaction Record</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="background:var(--border);color:var(--text)" onclick="openImport()">📥 Import CSV</button>
+      <button class="btn" onclick="openTx()">+ Add</button>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table>
+    <thead><tr><th>Date</th><th>Merchant</th><th>Amount</th><th>Category</th><th>Sub</th><th>Note</th><th></th></tr></thead>
+    <tbody>${[...S.transactions].reverse().map(t=>`<tr>
+      <td style="color:var(--muted);white-space:nowrap">${esc(t.date)}</td>
+      <td>${esc(t.merchant)}</td>
+      <td style="color:${t.cat==='Income'?'#3fb950':'#f85149'};font-weight:700">${t.cat==='Income'?'+':'-'}${fmt(t.amount)}</td>
+      <td>${pill(t.cat)}</td>
+      <td style="color:var(--muted)">${esc(t.sub)}</td>
+      <td style="color:var(--muted);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.note)}</td>
+      <td><button class="btn-ghost" onclick="delTx(${t.id})">${trash()}</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
+
+function openTx(){
+  const co=Object.keys(CC).map(c=>`<option>${c}</option>`).join('');
+  showModal('New Transaction',`
+    <div class="field"><label>Date</label><input id="md" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="field"><label>Merchant / Description</label><input id="mm"></div>
+    <div class="field"><label>Amount ($)</label><input id="ma" type="number" step="0.01"></div>
+    <div class="field"><label>Category</label><select id="mc" onchange="updateSubs()">${co}</select></div>
+    <div class="field"><label>Subcategory</label><select id="msb"><option value="">Select…</option></select></div>
+    <div class="field"><label>Note (optional)</label><input id="mno"></div>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:6px" onclick="saveTx()">Save Transaction</button>
+  `);
+  updateSubs();
+}
+
+function updateSubs(){
+  const cat=g('mc')?.value, sub=g('msb'); if(!sub)return;
+  sub.innerHTML=`<option value="">Select…</option>`+(S.budget[cat]||[]).map(x=>`<option>${esc(x.name)}</option>`).join('');
+}
+
+function saveTx(){
+  const t={id:Date.now(),date:g('md').value,merchant:g('mm').value.trim(),amount:Number(g('ma').value),cat:g('mc').value,sub:g('msb').value,note:g('mno').value.trim()};
+  if(!t.date||!t.merchant||!t.amount)return;
+  S.transactions.push(t);closeModal();save();render();
+}
+
+function delTx(id){S.transactions=S.transactions.filter(t=>t.id!==id);save();render();}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BILLS CALENDAR
+// ════════════════════════════════════════════════════════════════════════════
+function rCalendar(el){
+  const mo=S.calMonth,yr=S.calYear;
+  const fd=new Date(yr,mo,1).getDay(), dim=new Date(yr,mo+1,0).getDate();
+  const cells=Array(fd).fill(null).concat([...Array(dim)].map((_,i)=>i+1));
+  const td=new Date(), bbd={};
+  S.bills.forEach(b=>{if(!bbd[b.dueDay])bbd[b.dueDay]=[];bbd[b.dueDay].push(b);});
+  const paid=S.bills.filter(b=>b.paid).reduce((s,b)=>s+b.amount,0);
+  const unpaid=S.bills.filter(b=>!b.paid).reduce((s,b)=>s+b.amount,0);
+
+  el.innerHTML=`
+  <div class="sh"><span class="st">Bill & Debt Calendar</span><button class="btn" onclick="openBill()">+ Add Bill</button></div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="kpi"><div class="kpi-lbl">Total Bills</div><div class="kpi-val">${fmt(S.bills.reduce((s,b)=>s+b.amount,0))}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Paid</div><div class="kpi-val" style="color:#3fb950">${fmt(paid)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Remaining</div><div class="kpi-val" style="color:#f85149">${fmt(unpaid)}</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="cal-hdr">
+      <button class="btn-sm" onclick="calNav(-1)">‹</button>
+      <span class="cal-mo">${MONTHS[mo]} ${yr}</span>
+      <button class="btn-sm" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid">
+      ${DAYS.map(d=>`<div class="cdl">${d}</div>`).join('')}
+      ${cells.map(day=>{
+        if(!day)return'<div></div>';
+        const db=bbd[day]||[];
+        const it=yr===td.getFullYear()&&mo===td.getMonth()&&day===td.getDate();
+        return`<div class="cc${it?' today':''}">
+          <span class="cnum">${day}</span>
+          ${db.map(b=>`<div class="cbill ${b.paid?'paid':'unpaid'}" onclick="toggleBill(${b.id})" title="${esc(b.name)}: ${fmt(b.amount)}">${b.paid?'✓':'•'} ${esc(b.name)}</div>`).join('')}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">All Bills — tap to mark paid/unpaid</div>
+    ${S.bills.map(b=>`<div class="brow">
+      <button class="btn-ghost" onclick="toggleBill(${b.id})" style="color:${b.paid?'#3fb950':'#8b949e'}">${check(b.paid)}</button>
+      <span style="flex:1;${b.paid?'color:var(--muted);text-decoration:line-through':''}">${esc(b.name)}</span>
+      <span style="color:var(--muted);font-size:11px">Due: ${b.dueDay}th</span>
+      <span style="font-weight:700;color:${b.paid?'#3fb950':'#f85149'}">${fmt(b.amount)}</span>
+      <button class="btn-ghost" onclick="delBill(${b.id})">${trash()}</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+function calNav(d){
+  let m=S.calMonth+d,y=S.calYear;
+  if(m<0){m=11;y--;}else if(m>11){m=0;y++;}
+  S.calMonth=m;S.calYear=y;render();
+}
+
+function toggleBill(id){S.bills=S.bills.map(b=>b.id===id?{...b,paid:!b.paid}:b);save();render();}
+function delBill(id){if(confirm('Remove this bill?')){S.bills=S.bills.filter(b=>b.id!==id);save();render();}}
+
+function openBill(){
+  showModal('Add Bill',`
+    <div class="field"><label>Bill Name</label><input id="mn"></div>
+    <div class="field"><label>Amount ($)</label><input id="ma" type="number" step="0.01"></div>
+    <div class="field"><label>Due Day of Month (1–31)</label><input id="md" type="number" min="1" max="31"></div>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:6px" onclick="saveBill()">Save Bill</button>
+  `);
+}
+
+function saveBill(){
+  const b={id:Date.now(),name:g('mn').value.trim(),amount:Number(g('ma').value),dueDay:Number(g('md').value),paid:false};
+  if(!b.name||!b.amount||!b.dueDay)return;
+  S.bills.push(b);closeModal();save();render();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BUDGET SETUP
+// ════════════════════════════════════════════════════════════════════════════
+function rBudget(el){
+  el.innerHTML=`<div class="sh"><span class="st">Budget Setup</span></div>`+
+  Object.entries(S.budget).map(([cat,items])=>{
+    const{color,bg}=CC[cat];
+    const tB=items.reduce((s,x)=>s+Number(x.budget),0);
+    const tA=items.reduce((s,x)=>s+Number(x.actual),0);
+    return`<div class="bcat">
+      <div class="bcath" style="background:${bg}">
+        <span style="color:${color};font-weight:700;font-size:14px">${cat}</span>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <span style="color:var(--muted);font-size:11px">Budget: <strong style="color:var(--text)">${fmt(tB)}</strong></span>
+          <span style="color:var(--muted);font-size:11px">Actual: <strong style="color:${tA>tB?'#f85149':'#3fb950'}">${fmt(tA)}</strong></span>
+          <button style="background:none;border:1px solid ${color}66;border-radius:6px;padding:3px 10px;color:${color};font-size:11px;cursor:pointer" onclick="openBI('${cat}')">+ Add</button>
+        </div>
+      </div>
+      ${items.map(item=>`<div class="bitem">
+        <span style="flex:1;min-width:80px;font-size:13px">${esc(item.name)}</span>
+        <span style="color:var(--muted);font-size:11px">Budget: ${fmt(item.budget)}</span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span style="color:var(--muted);font-size:11px">Actual:</span>
+          <input type="number" value="${item.actual}" onchange="updActual('${cat}',${item.id},this.value)">
+        </div>
+        <span style="font-size:11px;font-weight:600;color:${item.actual>item.budget?'#f85149':'#3fb950'};min-width:70px;text-align:right">
+          ${item.actual>item.budget?'Over':'Under'} ${fmt(Math.abs(Number(item.actual)-Number(item.budget)))}
+        </span>
+        <button class="btn-ghost" onclick="delBI('${cat}',${item.id})">${trash()}</button>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+  el.innerHTML += `<div id="planner-root"></div>`;
+  renderPlanner();
+}
+
+function openBI(cat){
+  showModal(`Add to ${cat}`,`
+    <div class="field"><label>Name</label><input id="mn"></div>
+    <div class="field"><label>Budgeted Amount ($)</label><input id="mb" type="number" step="0.01"></div>
+    <div class="field"><label>Actual Amount ($)</label><input id="ma" type="number" step="0.01" value="0"></div>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:6px" onclick="saveBI('${cat}')">Save Item</button>
+  `);
+}
+
+function saveBI(cat){
+  const item={id:Date.now(),name:g('mn').value.trim(),budget:Number(g('mb').value),actual:Number(g('ma').value||0)};
+  if(!item.name||!item.budget)return;
+  S.budget[cat].push(item);closeModal();save();render();
+}
+
+function updActual(cat,id,v){S.budget[cat]=S.budget[cat].map(x=>x.id===id?{...x,actual:Number(v)}:x);save();}
+function delBI(cat,id){S.budget[cat]=S.budget[cat].filter(x=>x.id!==id);save();render();}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DEBT PAYOFF PLANNER
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Payoff simulation (supports Phase 2 expansion) ──
+function calcPayoff(debts, extra, strategy){
+  if(!debts.length)return[];
+  const list=debts.map(d=>({...d,rem:Math.round(Number(d.balance)*100)/100,paidMonth:null,totalInterest:0}))
+    .sort((a,b)=>strategy==='snowball'?Number(a.balance)-Number(b.balance):Number(b.apr)-Number(a.apr));
+  let cascade=Number(extra)||0;
+  for(let mo=1;mo<=480;mo++){
+    list.forEach(d=>{
+      if(d.rem<=0)return;
+      const int=d.rem*(Number(d.apr)/100/12);
+      d.rem+=int; d.totalInterest+=int;
+    });
+    const fi=list.findIndex(d=>d.rem>0);
+    list.forEach((d,i)=>{
+      if(d.rem<=0)return;
+      let pay=Number(d.minPayment);
+      if(i===fi)pay+=cascade;
+      pay=Math.min(pay,d.rem);
+      d.rem=Math.max(0,Math.round((d.rem-pay)*100)/100);
+      if(d.rem<=0&&!d.paidMonth){d.paidMonth=mo;cascade+=Number(d.minPayment);}
+    });
+    if(list.every(d=>d.rem<=0))break;
+  }
+  return list;
+}
+
+function calcMinsOnly(debts){
+  // Run same simulation with zero extra for comparison
+  return calcPayoff(debts,0,'avalanche');
+}
+
+function moToStr(m){
+  if(!m||m>480)return'—';
+  const yr=Math.floor(m/12),mo=m%12;
+  if(yr===0)return`${mo} mo`;
+  if(mo===0)return`${yr} yr`;
+  return`${yr} yr ${mo} mo`;
+}
+
+function payoffDateStr(months){
+  if(!months||months>480)return'—';
+  const d=new Date();
+  d.setMonth(d.getMonth()+months);
+  return d.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+}
+
+// ── Render planner into #planner-root ──
+function renderPlanner(){
+  const root=g('planner-root');if(!root)return;
+  const{strategy,extra,debts}=S.debtPlanner;
+
+  if(!debts.length){
+    root.innerHTML=`
+    <div class="planner-wrap">
+      <div class="planner-hdr">
+        <div class="planner-title">💳 Debt Payoff Planner</div>
+        <button class="btn" style="font-size:11px;padding:6px 12px" onclick="openDebtModal()">+ Add Debt</button>
+      </div>
+      <div class="planner-empty">
+        No debts added yet.<br>
+        <span style="font-size:12px">Tap <strong>+ Add Debt</strong> to enter a credit card, loan, or any balance you're paying off.</span>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const plan=calcPayoff(debts,extra,strategy);
+  const mins=calcMinsOnly(debts);
+  const focusId=plan[0]?.id;
+  const totalDebt=debts.reduce((s,d)=>s+Number(d.balance),0);
+  const totalMin=debts.reduce((s,d)=>s+Number(d.minPayment),0);
+  const planMonths=Math.max(...plan.map(d=>d.paidMonth||0));
+  const minsMonths=Math.max(...mins.map(d=>d.paidMonth||0));
+  const planInterest=plan.reduce((s,d)=>s+d.totalInterest,0);
+  const minsInterest=mins.reduce((s,d)=>s+d.totalInterest,0);
+  const interestSaved=Math.max(0,minsInterest-planInterest);
+  const timeSaved=Math.max(0,minsMonths-planMonths);
+
+  const stratBtn=(s,lbl)=>`<button class="strat-btn${strategy===s?' active':''}" onclick="setPlanStrategy('${s}')">${lbl}</button>`;
+
+  root.innerHTML=`
+  <div class="planner-wrap">
+    <div class="planner-hdr">
+      <div class="planner-title">💳 Debt Payoff Planner</div>
+      <div class="strategy-wrap">
+        ${stratBtn('snowball','❄️ Snowball')}
+        ${stratBtn('avalanche','🌊 Avalanche')}
+        <button class="btn" style="font-size:11px;padding:5px 10px;margin-left:4px" onclick="openDebtModal()">+ Add</button>
+      </div>
+    </div>
+    <div class="planner-body">
+      <div class="extra-row">
+        <label>💵 Extra $ toward debt each month:</label>
+        <input type="number" value="${extra}" min="0" step="10" onchange="updatePlanExtra(this.value)" placeholder="0">
+        <span style="font-size:11px;color:var(--muted)">on top of minimums</span>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="planner-tbl">
+          <thead><tr>
+            <th>Debt</th><th>Balance</th><th>APR</th><th>Min Payment</th>
+            <th>Pay This Month</th><th>Payoff In</th><th>Payoff Date</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${plan.map(d=>{
+              const isFocus=d.id===focusId;
+              const suggested=Number(d.minPayment)+(isFocus?Number(extra):0);
+              return`<tr class="${isFocus?'focus-row':''}">
+                <td><strong>${esc(d.name)}</strong>${isFocus?`<span class="focus-badge">FOCUS</span>`:''}</td>
+                <td>${fmt(d.balance)}</td>
+                <td>${Number(d.apr).toFixed(1)}%</td>
+                <td class="plan-min">${fmt(d.minPayment)}</td>
+                <td class="${isFocus?'plan-pay':'plan-min'}">${fmt(suggested)}${isFocus&&Number(extra)>0?` <span style="font-size:10px;color:#a78bfa">(+${fmt(extra)} extra)</span>`:''}</td>
+                <td style="font-weight:600;color:${isFocus?'#a78bfa':''}">${moToStr(d.paidMonth)}</td>
+                <td style="color:var(--muted)">${payoffDateStr(d.paidMonth)}</td>
+                <td>
+                  <button class="btn-ghost" onclick="openDebtModal(${d.id})" style="color:var(--muted);font-size:10px">✏️</button>
+                  <button class="btn-ghost" onclick="delDebt(${d.id})">${trash()}</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="planner-summary">
+        <div class="psum"><div class="psum-lbl">Total Debt</div><div class="psum-val" style="color:#f85149">${fmt(totalDebt)}</div></div>
+        <div class="psum"><div class="psum-lbl">Total Minimums/mo</div><div class="psum-val">${fmt(totalMin)}</div></div>
+        <div class="psum"><div class="psum-lbl">Debt-Free In</div><div class="psum-val" style="color:#a78bfa">${moToStr(planMonths)}</div></div>
+        <div class="psum"><div class="psum-lbl">Debt-Free Date</div><div class="psum-val" style="color:#a78bfa;font-size:13px">${payoffDateStr(planMonths)}</div></div>
+        <div class="psum"><div class="psum-lbl">Interest Saved vs Minimums</div><div class="psum-val" style="color:#3fb950">${fmt(interestSaved)}</div></div>
+        <div class="psum"><div class="psum-lbl">Time Saved vs Minimums</div><div class="psum-val" style="color:#3fb950">${moToStr(timeSaved)}</div></div>
+      </div>
+
+      <div style="margin-top:12px;padding:10px 14px;background:#1e1535;border-radius:8px;font-size:12px;color:#a78bfa;line-height:1.6">
+        ${strategy==='snowball'
+          ?`❄️ <strong>Snowball:</strong> Pay off smallest balance first (<strong>${esc(plan[0]?.name||'')}</strong>). Fast wins keep you motivated.`
+          :`🌊 <strong>Avalanche:</strong> Attack highest APR first (<strong>${esc(plan[0]?.name||'')}</strong>). Saves the most money in interest.`}
+        ${interestSaved>0?` You'll save <strong>${fmt(interestSaved)}</strong> in interest and be debt-free <strong>${moToStr(timeSaved)}</strong> sooner than paying minimums only.`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function openDebtModal(id){
+  const d=id?S.debtPlanner.debts.find(x=>x.id===id):null;
+  showModal(d?'Edit Debt':'Add Debt',`
+    <div class="field"><label>Debt Name (e.g. Chase Visa, Car Loan)</label><input id="dn" value="${esc(d?.name||'')}"></div>
+    <div class="field"><label>Current Balance ($)</label><input id="db" type="number" step="0.01" value="${d?.balance||''}"></div>
+    <div class="field"><label>Interest Rate / APR (%)</label><input id="da" type="number" step="0.1" value="${d?.apr||''}"></div>
+    <div class="field"><label>Minimum Monthly Payment ($)</label><input id="dm" type="number" step="0.01" value="${d?.minPayment||''}"></div>
+    <p style="font-size:11px;color:var(--muted);margin-top:2px;margin-bottom:10px">Find APR on your monthly statement or card website.</p>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:4px" onclick="saveDebt(${id||'null'})">${d?'Save Changes':'Add Debt'}</button>
+  `);
+}
+
+function saveDebt(id){
+  const item={name:g('dn').value.trim(),balance:Number(g('db').value),apr:Number(g('da').value),minPayment:Number(g('dm').value)};
+  if(!item.name||!item.balance||!item.apr||!item.minPayment)return;
+  if(id) S.debtPlanner.debts=S.debtPlanner.debts.map(d=>d.id===id?{...item,id}:d);
+  else S.debtPlanner.debts.push({...item,id:Date.now()});
+  closeModal();save();renderPlanner();
+}
+
+function delDebt(id){
+  if(confirm('Remove this debt from the planner?')){
+    S.debtPlanner.debts=S.debtPlanner.debts.filter(d=>d.id!==id);
+    save();renderPlanner();
+  }
+}
+
+function setPlanStrategy(s){S.debtPlanner.strategy=s;save();renderPlanner();}
+function updatePlanExtra(v){S.debtPlanner.extra=Math.max(0,Number(v)||0);save();renderPlanner();}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MODAL
+// ════════════════════════════════════════════════════════════════════════════
+function g(id){return document.getElementById(id);}
+function showModal(title,body){g('mttl').textContent=title;g('mbody').innerHTML=body;g('moverlay').classList.add('open');}
+function closeModal(){g('moverlay').classList.remove('open');}
+function overlayClick(e){if(e.target===g('moverlay'))closeModal();}
+
+// ════════════════════════════════════════════════════════════════════════════
+// EXPORT CSV
+// ════════════════════════════════════════════════════════════════════════════
+function exportCSV(){
+  const date=new Date().toISOString().slice(0,10);
+  function dl(name,rows){
+    const csv=rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a=document.createElement('a');
+    a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download=name;a.click();
+  }
+  const br=[['Category','Name','Budget','Actual','Difference']];
+  Object.entries(S.budget).forEach(([cat,items])=>items.forEach(x=>br.push([cat,x.name,x.budget,x.actual,Number(x.actual)-Number(x.budget)])));
+  dl(`BudgetPro_Budget_${date}.csv`,br);
+  setTimeout(()=>dl(`BudgetPro_Transactions_${date}.csv`,[['Date','Merchant','Amount','Category','Sub','Note'],...S.transactions.map(t=>[t.date,t.merchant,t.amount,t.cat,t.sub,t.note])]),300);
+  setTimeout(()=>dl(`BudgetPro_Bills_${date}.csv`,[['Name','Amount','Due Day','Status'],...S.bills.map(b=>[b.name,b.amount,b.dueDay,b.paid?'Paid':'Unpaid'])]),600);
+  setTimeout(()=>dl(`BudgetPro_Paychecks_${date}.csv`,[['Name','Source','Frequency','Amount','Next Date','Notes'],...S.paychecks.map(p=>[p.name,p.source,p.frequency,p.amount,p.nextDate,p.notes])]),900);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CSV IMPORT
+// ════════════════════════════════════════════════════════════════════════════
+let IMP = { headers:[], rows:[], fmt:null };
+
+// ── Parse CSV (handles quotes, commas inside fields, BOM) ──
+function parseCSV(text){
+  text=text.replace(/^\uFEFF/,'');
+  const out=[];
+  for(const line of text.split(/\r?\n/)){
+    if(!line.trim())continue;
+    const row=[];let field='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){if(inQ&&line[i+1]==='"'){field+='"';i++;}else inQ=!inQ;}
+      else if(c===','&&!inQ){row.push(field.trim());field='';}
+      else field+=c;
+    }
+    row.push(field.trim());
+    if(row.some(c=>c))out.push(row);
+  }
+  return out;
+}
+
+// ── Auto-detect bank format ──
+const FORMATS={
+  'Chase Bank':       {dateKeys:['posting date'],        descKeys:['description'],           amtKeys:['amount'],    negSpend:true,  type:'bank'},
+  'Chase Credit Card':{dateKeys:['transaction date'],    descKeys:['description'],           amtKeys:['amount'],    negSpend:true,  type:'cc'},
+  'Bank of America':  {dateKeys:['date'],                descKeys:['description','payee'],   amtKeys:['amount'],    negSpend:true,  type:'bank'},
+  'Wells Fargo':      {dateKeys:['date'],                descKeys:['description','name'],    amtKeys:['amount'],    negSpend:true,  type:'bank'},
+  'Discover':         {dateKeys:['trans. date','trans date'], descKeys:['description'],      amtKeys:['amount'],    negSpend:false, type:'cc'},
+  'American Express': {dateKeys:['date'],                descKeys:['description','merchant'],amtKeys:['amount'],    negSpend:false, type:'cc'},
+  'Capital One':      {dateKeys:['transaction date'],    descKeys:['description'],           debitKey:'debit',creditKey:'credit',splitAmt:true,type:'cc'},
+};
+
+function detectFormat(headers){
+  const hl=headers.map(h=>h.toLowerCase().trim());
+  if(hl.some(h=>h.includes('posting date')))return{...FORMATS['Chase Bank'],name:'Chase Bank'};
+  if(hl.some(h=>h==='transaction date')&&!hl.some(h=>h==='debit'))return{...FORMATS['Chase Credit Card'],name:'Chase Credit Card'};
+  if(hl.some(h=>h==='debit')||hl.some(h=>h==='credit'))return{...FORMATS['Capital One'],name:'Capital One'};
+  if(hl.some(h=>h.includes('trans. date')||h.includes('trans date')))return{...FORMATS['Discover'],name:'Discover'};
+  if(hl.some(h=>h.includes('extended details')))return{...FORMATS['American Express'],name:'American Express'};
+  if(hl.some(h=>h.includes('running bal')))return{...FORMATS['Bank of America'],name:'Bank of America'};
+  return{name:'Standard CSV',dateKeys:['date'],descKeys:['description','merchant','payee','memo','name'],amtKeys:['amount','debit amount'],negSpend:true,type:'bank'};
+}
+
+function colFor(headers,keys){
+  for(const k of(keys||[])){
+    const i=headers.findIndex(h=>h.toLowerCase().trim().includes(k.toLowerCase()));
+    if(i>=0)return headers[i];
+  }
+  return headers[0]||'';
+}
+
+// ── Step 1: open modal with drop zone ──
+function openImport(){
+  IMP={headers:[],rows:[],fmt:null};
+  showModal('Import Bank / Credit Card CSV',step1HTML());
+  // Bind drag events after paint
+  requestAnimationFrame(()=>{
+    const dz=g('dz');if(!dz)return;
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');readFile(e.dataTransfer.files[0]);});
+  });
+}
+
+function step1HTML(){
+  return`
+  <div class="step-indicator">
+    <div class="step active"><div class="step-dot">1</div>Upload File</div>
+    <span class="sep">›</span>
+    <div class="step"><div class="step-dot">2</div>Map Columns</div>
+    <span class="sep">›</span>
+    <div class="step"><div class="step-dot">3</div>Import</div>
+  </div>
+  <div class="drop-zone" id="dz" onclick="g('csv-input').click()">
+    <div style="font-size:36px;margin-bottom:8px">📁</div>
+    <p style="font-weight:600;margin-bottom:6px">Drop your CSV file here</p>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:14px">or click to browse your files</p>
+    <button class="btn" onclick="event.stopPropagation();g('csv-input').click()">Choose File</button>
+  </div>
+  <input type="file" id="csv-input" accept=".csv,.txt" style="display:none" onchange="readFile(this.files[0])">
+  <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+    <p style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text)">✅ Supported banks &amp; cards</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:4px">
+      ${['Chase (bank & CC)','Bank of America','Wells Fargo','Discover','American Express','Capital One','Any standard CSV'].map(b=>`<span style="font-size:11px;color:var(--muted)">• ${b}</span>`).join('')}
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6">
+    🔒 <strong style="color:var(--text)">100% private</strong> — your file is read locally inside your browser. Nothing is uploaded or sent anywhere.
+  </p>`;
+}
+
+function readFile(file){
+  if(!file)return;
+  if(!file.name.match(/\.(csv|txt)$/i)){alert('Please select a .csv file.');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const rows=parseCSV(e.target.result);
+    if(rows.length<2){alert('File appears empty or could not be read.');return;}
+    // Detect if first row is headers or data
+    const first=rows[0];
+    const looksLikeHeader=first.some(c=>isNaN(parseFloat(c.replace(/[$, ]/g,'')))||c.toLowerCase().includes('date')||c.toLowerCase().includes('desc')||c.toLowerCase().includes('amount'));
+    IMP.headers=looksLikeHeader?first:first.map((_,i)=>`Column ${i+1}`);
+    IMP.rows=looksLikeHeader?rows.slice(1):rows;
+    IMP.fmt=detectFormat(IMP.headers);
+    g('mbody').innerHTML=step2HTML(file.name);
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+// ── Step 2: column mapping + preview ──
+function step2HTML(filename){
+  const f=IMP.fmt, h=IMP.headers;
+  const colOpts=h.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  const dateDef=colFor(h,f.dateKeys||['date']);
+  const descDef=colFor(h,f.descKeys||['description']);
+  const amtDef=f.splitAmt?'':colFor(h,f.amtKeys||['amount']);
+  const debitDef=f.splitAmt?colFor(h,[f.debitKey||'debit']):'';
+  const creditDef=f.splitAmt?colFor(h,[f.creditKey||'credit']):'';
+  const catOpts=Object.keys(CC).map(c=>`<option${c==='Expenses'?' selected':''}>${c}</option>`).join('');
+
+  return`
+  <div class="step-indicator">
+    <div class="step done"><div class="step-dot">✓</div>Upload File</div>
+    <span class="sep">›</span>
+    <div class="step active"><div class="step-dot">2</div>Map Columns</div>
+    <span class="sep">›</span>
+    <div class="step"><div class="step-dot">3</div>Import</div>
+  </div>
+  <div class="import-badge">✓ ${esc(filename)} — ${IMP.rows.length} rows · Detected: ${esc(f.name)}</div>
+  <div class="import-grid">
+    <div class="field"><label>Account Type</label>
+      <select id="i-type">
+        <option value="bank"${f.type==='bank'?' selected':''}>Bank Account</option>
+        <option value="cc"${f.type==='cc'?' selected':''}>Credit Card</option>
+      </select>
+    </div>
+    <div class="field"><label>Default Category</label><select id="i-cat">${catOpts}</select></div>
+    <div class="field"><label>Date Column</label>
+      <select id="i-date">${h.map(c=>`<option${c===dateDef?' selected':''}>${esc(c)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Description Column</label>
+      <select id="i-desc">${h.map(c=>`<option${c===descDef?' selected':''}>${esc(c)}</option>`).join('')}</select>
+    </div>
+    ${f.splitAmt?`
+    <div class="field"><label>Debit Column (charges)</label>
+      <select id="i-debit">${h.map(c=>`<option${c===debitDef?' selected':''}>${esc(c)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Credit Column (payments)</label>
+      <select id="i-credit">${h.map(c=>`<option${c===creditDef?' selected':''}>${esc(c)}</option>`).join('')}</select>
+    </div>`:`
+    <div class="field"><label>Amount Column</label>
+      <select id="i-amt">${h.map(c=>`<option${c===amtDef?' selected':''}>${esc(c)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Amount Direction</label>
+      <select id="i-sign">
+        <option value="neg"${f.negSpend?' selected':''}>Negative = money spent</option>
+        <option value="pos"${!f.negSpend?' selected':''}>Positive = money spent</option>
+      </select>
+    </div>`}
+  </div>
+  <p style="font-size:12px;font-weight:600;color:var(--text);margin:10px 0 6px">Preview (first 8 rows)</p>
+  <div class="import-preview">
+    <table>
+      <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Will Import As</th></tr></thead>
+      <tbody id="i-preview"></tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:16px">
+    <button class="btn-sm" onclick="openImport()">← Back</button>
+    <button class="btn" style="flex:1;justify-content:center" onclick="executeImport()">Import ${IMP.rows.length} Transactions →</button>
+  </div>`;
+}
+
+// Call after step2 renders to populate preview
+function buildPreview(){
+  const pb=g('i-preview');if(!pb)return;
+  const dateCol=g('i-date')?.value, descCol=g('i-desc')?.value;
+  const splitAmt=IMP.fmt.splitAmt;
+  const amtCol=splitAmt?null:g('i-amt')?.value;
+  const debitCol=splitAmt?g('i-debit')?.value:null;
+  const creditCol=splitAmt?g('i-credit')?.value:null;
+  const negSpend=g('i-sign')?.value==='neg';
+  const cat=g('i-cat')?.value||'Expenses';
+  const hi=k=>IMP.headers.indexOf(k);
+
+  pb.innerHTML=IMP.rows.slice(0,8).map(row=>{
+    const date=row[hi(dateCol)]||'';
+    const desc=row[hi(descCol)]||'';
+    let rawAmt=0, isIncome=false;
+    if(splitAmt){
+      const d=parseFloat((row[hi(debitCol)]||'0').replace(/[$,]/g,''))||0;
+      const c=parseFloat((row[hi(creditCol)]||'0').replace(/[$,]/g,''))||0;
+      rawAmt=d>0?d:c; isIncome=c>0&&d===0;
+    } else {
+      const v=parseFloat((row[hi(amtCol)]||'0').replace(/[$,]/g,''))||0;
+      rawAmt=Math.abs(v);
+      isIncome=negSpend?v>0:v<0;
+    }
+    const dispCat=isIncome?'Income':cat;
+    return`<tr>
+      <td style="color:var(--muted);white-space:nowrap">${esc(date)}</td>
+      <td>${esc(desc.substring(0,28))}${desc.length>28?'…':''}</td>
+      <td style="font-weight:600;color:${isIncome?'#3fb950':'#f85149'}">${isIncome?'+':'-'}${fmt(rawAmt)}</td>
+      <td>${pill(dispCat)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Hook preview rebuild to select changes (called after step2 HTML inserts)
+function afterStep2(){
+  ['i-date','i-desc','i-amt','i-debit','i-credit','i-sign','i-cat','i-type'].forEach(id=>{
+    const el=g(id);if(el)el.addEventListener('change',buildPreview);
+  });
+  buildPreview();
+}
+
+// Override showModal to run afterStep2 when step2 renders
+const _origShowModal=showModal;
+// Patch: after step2 HTML is injected, wire up listeners
+function showModal(title,body){
+  g('mttl').textContent=title;
+  g('mbody').innerHTML=body;
+  g('moverlay').classList.add('open');
+  if(g('i-date'))afterStep2();
+}
+
+// ── Execute import ──
+function executeImport(){
+  const dateCol=g('i-date')?.value, descCol=g('i-desc')?.value;
+  const splitAmt=IMP.fmt?.splitAmt;
+  const amtCol=splitAmt?null:g('i-amt')?.value;
+  const debitCol=splitAmt?g('i-debit')?.value:null;
+  const creditCol=splitAmt?g('i-credit')?.value:null;
+  const negSpend=g('i-sign')?.value==='neg';
+  const defCat=g('i-cat')?.value||'Expenses';
+  const hi=k=>IMP.headers.indexOf(k);
+
+  const imported=[];
+  for(const row of IMP.rows){
+    const date=normalizeDate(row[hi(dateCol)]||'');
+    const merchant=(row[hi(descCol)]||'').trim();
+    if(!date&&!merchant)continue;
+    let rawAmt=0, isIncome=false;
+    if(splitAmt){
+      const d=parseFloat((row[hi(debitCol)]||'0').replace(/[$,]/g,''))||0;
+      const c=parseFloat((row[hi(creditCol)]||'0').replace(/[$,]/g,''))||0;
+      rawAmt=d>0?d:c; isIncome=c>0&&d===0;
+    } else {
+      const v=parseFloat((row[hi(amtCol)]||'0').replace(/[$,]/g,''))||0;
+      rawAmt=Math.abs(v); isIncome=negSpend?v>0:v<0;
+    }
+    if(rawAmt===0)continue;
+    imported.push({id:Date.now()+imported.length,date,merchant,amount:rawAmt,cat:isIncome?'Income':defCat,sub:'',note:'Imported'});
+  }
+
+  if(!imported.length){alert('No valid transactions found. Check your column mapping.');return;}
+  S.transactions.push(...imported);
+  closeModal(); save(); render();
+  const sr=runSync();
+  showSyncToast(sr,true,imported.length);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SYNC ENGINE
+// ════════════════════════════════════════════════════════════════════════════
+function runSync(){
+  const r={budgetLines:0,bills:0,paychecks:0,unmatched:0};
+
+  // 1. Budget actuals — sum transactions by category + subcategory
+  Object.entries(S.budget).forEach(([cat,items])=>{
+    const itemNames=new Set(items.map(x=>x.name));
+    items.forEach(item=>{
+      const txs=S.transactions.filter(t=>t.cat===cat&&t.sub===item.name);
+      if(txs.length){
+        item.actual=Math.round(txs.reduce((s,t)=>s+t.amount,0)*100)/100;
+        r.budgetLines++;
+      }
+    });
+    // Track transactions that couldn't match a budget line
+    S.transactions.filter(t=>t.cat===cat&&t.sub&&!itemNames.has(t.sub)).forEach(()=>r.unmatched++);
+  });
+
+  // 2. Bills — match by subcategory first, then fuzzy merchant name
+  S.bills.forEach(bill=>{
+    if(bill.paid)return;
+    const exact=S.transactions.find(t=>t.cat==='Bills'&&t.sub===bill.name);
+    const fuzzy=!exact&&S.transactions.find(t=>{
+      const m=t.merchant.toLowerCase().replace(/[^a-z0-9]/g,'');
+      const b=bill.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+      return m.includes(b)||b.includes(m)||
+        b.split(/\s+/).filter(w=>w.length>3).some(w=>m.includes(w));
+    });
+    if(exact||fuzzy){bill.paid=true;r.bills++;}
+  });
+
+  // 3. Paychecks — match income transactions to paycheck source / name
+  S.paychecks.forEach(pc=>{
+    const match=S.transactions.find(t=>
+      t.cat==='Income'&&(
+        t.sub===pc.name||
+        t.merchant.toLowerCase().includes(pc.source.toLowerCase())||
+        pc.source.toLowerCase().split(/\s+/).some(w=>w.length>2&&t.merchant.toLowerCase().includes(w))
+      )
+    );
+    if(match&&match.date>=(pc.nextDate||'')){
+      pc.nextDate=advanceDate(match.date,pc.frequency);
+      r.paychecks++;
+    }
+  });
+
+  S.lastSync=new Date().toISOString();
+  save(); render();
+  return r;
+}
+
+function manualSync(){
+  if(!S.transactions.length){
+    showToast('No transactions to sync yet. Import a bank statement first.','#d4a017',3000);
+    return;
+  }
+  const r=runSync();
+  showSyncToast(r,false,0);
+}
+
+function advanceDate(dateStr,freq){
+  const days={Weekly:7,'Bi-weekly':14,'Semi-monthly':15,Monthly:30,'Bi-monthly':61,Quarterly:91,Annually:365};
+  const d=new Date(dateStr+'T12:00:00');
+  d.setDate(d.getDate()+(days[freq]||14));
+  return d.toISOString().slice(0,10);
+}
+
+function showSyncToast(r,auto,imported){
+  const parts=[];
+  if(imported)parts.push(`${imported} transactions imported`);
+  if(r.budgetLines)parts.push(`${r.budgetLines} budget lines updated`);
+  if(r.bills)parts.push(`${r.bills} bills marked paid`);
+  if(r.paychecks)parts.push(`${r.paychecks} paychecks advanced`);
+  if(!parts.length)parts.push('Everything already up to date');
+  showToast((auto?'🔄 Auto-synced — ':'✓ Synced — ')+parts.join(' · '),'#238636',4500);
+}
+
+function showToast(msg,bg,ms){
+  const t=document.createElement('div');
+  t.style.cssText=`position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:${bg};color:#fff;padding:12px 18px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;box-shadow:0 4px 20px #0008;max-width:92vw;text-align:center;line-height:1.5`;
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),ms||3500);
+}
+
+// ── Normalize various date formats to YYYY-MM-DD ──
+function normalizeDate(d){
+  if(!d)return'';
+  d=d.trim().replace(/"/g,'');
+  // Already ISO
+  if(/^\d{4}-\d{2}-\d{2}/.test(d))return d.slice(0,10);
+  // M/D/YYYY or MM/DD/YYYY
+  const m1=d.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if(m1){
+    const[,mo,dy,yr]=m1;
+    const y=yr.length===2?(Number(yr)<50?'20':'19')+yr:yr;
+    return`${y}-${mo.padStart(2,'0')}-${dy.padStart(2,'0')}`;
+  }
+  // Try native parse
+  try{const dt=new Date(d);if(!isNaN(dt))return dt.toISOString().slice(0,10);}catch(_){}
+  return d;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// RESET (clear demo data)
+// ════════════════════════════════════════════════════════════════════════════
+function resetApp(){
+  if(confirm('Clear all data and start fresh? This cannot be undone.')){
+    localStorage.removeItem(SK);
+    S={...JSON.parse(JSON.stringify(SEED)),budget:{Income:[],Savings:[],Bills:[],Expenses:[],Debt:[]},transactions:[],bills:[],paychecks:[],tab:'dashboard',calMonth:new Date().getMonth(),calYear:new Date().getFullYear()};
+    save();render();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DESKTOP TABS INIT
+// ════════════════════════════════════════════════════════════════════════════
+function buildTabs(){
+  const tabs=[['dashboard','📊','Dashboard'],['paychecks','💼','Paychecks'],['transactions','📋','Transactions'],['calendar','📅','Bills'],['budget','💵','Budget']];
+  g('dtabs').innerHTML=tabs.map(([id,ico,lbl])=>`<button class="dtab${S.tab===id?' active':''}" data-tab="${id}" onclick="setTab('${id}')">${ico} ${lbl}</button>`).join('');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+buildTabs();
+render();
+</script>
+
+<!-- Reset button (hidden in footer) -->
+<div style="text-align:center;padding:20px 0 40px;display:none" id="reset-footer">
+  <button onclick="resetApp()" style="background:none;border:1px solid #21262d;border-radius:8px;padding:6px 14px;color:#8b949e;font-size:11px;cursor:pointer">🗑 Clear All Data & Start Fresh</button>
+</div>
+</body>
+</html>

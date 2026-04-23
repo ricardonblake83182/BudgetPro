@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BudgetPro – User Manual</title>
+<style>
+:root{
+  --green:#238636; --light-green:#e6f4ea;
+  --blue:#1a56db; --light-blue:#e8f0fe;
+  --gold:#b45309; --light-gold:#fef3c7;
+  --red:#dc2626; --light-red:#fee2e2;
+  --purple:#7c3aed; --light-purple:#ede9fe;
+  --text:#111827; --muted:#6b7280;
+  --border:#e5e7eb; --bg:#f9fafb; --card:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;color:var(--text);background:var(--bg);font-size:15px;line-height:1.7}
+a{color:var(--blue)}
+
+/* ── Layout ── */
+.page{max-width:800px;margin:0 auto;padding:32px 20px 60px}
+
+/* ── Cover ── */
+.cover{text-align:center;padding:48px 20px 40px;background:linear-gradient(135deg,#0d1117 0%,#161b22 100%);border-radius:16px;margin-bottom:40px;color:#e6edf3}
+.cover-icon{font-size:52px;margin-bottom:12px}
+.cover-title{font-size:32px;font-weight:700;margin-bottom:6px;color:#fff}
+.cover-sub{font-size:15px;color:#8b949e;margin-bottom:20px}
+.cover-badge{display:inline-block;background:#238636;color:#fff;border-radius:20px;padding:5px 16px;font-size:12px;font-weight:700;font-family:system-ui,sans-serif}
+
+/* ── Quick Start box ── */
+.quickstart{background:#0d2918;border:2px solid #238636;border-radius:12px;padding:24px 28px;margin-bottom:36px}
+.quickstart h2{color:#3fb950;font-size:18px;margin-bottom:14px;font-family:system-ui,sans-serif}
+.qs-steps{display:flex;flex-direction:column;gap:10px}
+.qs-step{display:flex;align-items:flex-start;gap:12px;color:#e6edf3;font-size:14px;font-family:system-ui,sans-serif;line-height:1.5}
+.qs-num{width:26px;height:26px;background:#238636;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px}
+.qs-link{color:#3fb950;text-decoration:none;font-weight:600}
+
+/* ── Table of contents ── */
+.toc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:36px}
+.toc h2{font-size:17px;margin-bottom:14px;color:var(--muted);font-family:system-ui,sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:12px}
+.toc ol{padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.toc li{font-size:14px;font-family:system-ui,sans-serif}
+.toc a{color:var(--blue);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+/* ── Sections ── */
+.section{margin-bottom:44px}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid var(--border)}
+.section-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:20px;flex-shrink:0}
+.section-title{font-size:22px;font-weight:700}
+.section-desc{color:var(--muted);font-size:14px;font-family:system-ui,sans-serif;margin-top:2px}
+
+/* ── Steps ── */
+.steps{display:flex;flex-direction:column;gap:14px}
+.step{display:flex;gap:14px;align-items:flex-start}
+.step-num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px;font-family:system-ui,sans-serif}
+.step-body{flex:1}
+.step-title{font-weight:700;font-size:15px;margin-bottom:3px}
+.step-desc{font-size:14px;color:var(--muted);font-family:system-ui,sans-serif;line-height:1.6}
+.step-desc strong{color:var(--text)}
+
+/* ── Tips ── */
+.tip{border-radius:10px;padding:14px 18px;margin:12px 0;font-size:13px;font-family:system-ui,sans-serif;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+.tip-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.tip.green{background:var(--light-green);border-left:4px solid var(--green)}
+.tip.gold{background:var(--light-gold);border-left:4px solid var(--gold)}
+.tip.blue{background:var(--light-blue);border-left:4px solid var(--blue)}
+.tip.red{background:var(--light-red);border-left:4px solid var(--red)}
+.tip.purple{background:var(--light-purple);border-left:4px solid var(--purple)}
+
+/* ── Bank table ── */
+.bank-table{width:100%;border-collapse:collapse;font-size:13px;font-family:system-ui,sans-serif;margin:12px 0}
+.bank-table th{background:#f3f4f6;padding:9px 14px;text-align:left;font-weight:600;border:1px solid var(--border)}
+.bank-table td{padding:9px 14px;border:1px solid var(--border);vertical-align:top}
+.bank-table tr:nth-child(even) td{background:#f9fafb}
+
+/* ── Category pills ── */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0}
+.cat-pill{border-radius:8px;padding:8px 12px;font-size:13px;font-family:system-ui,sans-serif;font-weight:600;display:flex;align-items:center;gap:6px}
+
+/* ── Divider ── */
+.divider{border:none;border-top:1px solid var(--border);margin:32px 0}
+
+/* ── FAQ ── */
+.faq{display:flex;flex-direction:column;gap:12px}
+.faq-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.faq-q{font-weight:700;font-size:14px;margin-bottom:6px;display:flex;gap:8px;align-items:flex-start}
+.faq-a{font-size:13px;color:var(--muted);font-family:system-ui,sans-serif;line-height:1.6}
+
+/* ── Print ── */
+@media print{
+  body{background:#fff}
+  .cover{background:#0d1117!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .quickstart{background:#0d2918!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{padding:16px}
+  .tip,.bank-table th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media(max-width:600px){
+  .cover-title{font-size:24px}
+  .bank-table{font-size:11px}
+  .bank-table th,.bank-table td{padding:6px 8px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-icon">💰</div>
+  <div class="cover-title">BudgetPro</div>
+  <div class="cover-sub">Family Budget Tracker — User Manual</div>
+  <div class="cover-badge">Version 1.0 · Beta</div>
+</div>
+
+<!-- QUICK START -->
+<div class="quickstart" id="quickstart">
+  <h2>⚡ Quick Start Checklist</h2>
+  <div class="qs-steps">
+    <div class="qs-step"><div class="qs-num">1</div><span>Open <strong>BudgetPro.html</strong> in any browser (Chrome, Safari, Firefox). No install needed.</span></div>
+    <div class="qs-step"><div class="qs-num">2</div><span>Go to <strong>Budget tab</strong> → clear the demo data → add your real income, bills, expenses, savings, debt, and investments.</span></div>
+    <div class="qs-step"><div class="qs-num">3</div><span>Go to <strong>Paychecks tab</strong> → add each income source with your pay frequency and next pay date.</span></div>
+    <div class="qs-step"><div class="qs-num">4</div><span>Go to <strong>Bills tab</strong> → add every recurring bill with its due date.</span></div>
+    <div class="qs-step"><div class="qs-num">5</div><span>Log in to your bank's website → download your statement as a <strong>CSV file</strong>.</span></div>
+    <div class="qs-step"><div class="qs-num">6</div><span>Go to <strong>Transactions tab</strong> → tap <strong>📥 Import CSV</strong> → drop your bank file → click Import.</span></div>
+    <div class="qs-step"><div class="qs-num">7</div><span>The app <strong>auto-syncs</strong> immediately — budget actuals, paid bills, and paycheck dates all update automatically.</span></div>
+    <div class="qs-step"><div class="qs-num">8</div><span>Check your <strong>Dashboard</strong> to see your complete financial picture. Done! 🎉</span></div>
+  </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#opening">Opening the App</a></li>
+    <li><a href="#budget">Setting Up Your Budget</a></li>
+    <li><a href="#debtplanner">Debt Payoff Planner</a></li>
+    <li><a href="#paychecks">Paychecks Tab</a></li>
+    <li><a href="#bills">Bills Calendar Tab</a></li>
+    <li><a href="#transactions">Transactions Tab</a></li>
+    <li><a href="#import">Importing Your Bank or Credit Card Statement</a></li>
+    <li><a href="#sync">The Sync Feature</a></li>
+    <li><a href="#dashboard">Reading Your Dashboard</a></li>
+    <li><a href="#export">Exporting Your Data</a></li>
+    <li><a href="#faq">Frequently Asked Questions</a></li>
+  </ol>
+</div>
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 1. OPENING THE APP -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="opening">
+  <div class="section-header">
+    <div class="section-icon" style="background:#e8f0fe">🌐</div>
+    <div>
+      <div class="section-title">1. Opening the App</div>
+      <div class="section-desc">No account, no install, no internet required after first load</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#1a56db">1</div>
+      <div class="step-body">
+        <div class="step-title">Find the file</div>
+        <div class="step-desc">Locate <strong>BudgetPro.html</strong> — it was shared with you via Google Drive, email, or a web link. Download or bookmark it.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#1a56db">2</div>
+      <div class="step-body">
+        <div class="step-title">Open it in your browser</div>
+        <div class="step-desc">Double-click the file, or if using a shared link, just tap it. It works in <strong>Chrome, Safari, Firefox, and Edge</strong> on phone and computer.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#1a56db">3</div>
+      <div class="step-body">
+        <div class="step-title">Bookmark it for easy return</div>
+        <div class="step-desc">Press <strong>Ctrl+D</strong> (Windows) or <strong>Cmd+D</strong> (Mac) to bookmark it. On phone, tap the share icon → "Add to Home Screen" for app-like access.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tip green"><div class="tip-icon">✅</div><div>Your data saves <strong>automatically</strong> in your browser every time you make a change. You never need to press Save. Each person who opens the app on their own device has their own separate data.</div></div>
+  <div class="tip red"><div class="tip-icon">⚠️</div><div>Do <strong>not</strong> clear your browser's history or cached data, as this will erase your budget data. To keep a permanent backup, use <strong>Export CSV</strong> regularly.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 2. BUDGET SETUP -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="budget">
+  <div class="section-header">
+    <div class="section-icon" style="background:#fef3c7">💵</div>
+    <div>
+      <div class="section-title">2. Setting Up Your Budget</div>
+      <div class="section-desc">Define what you plan to earn and spend each month</div>
+    </div>
+  </div>
+
+  <p style="font-size:14px;font-family:system-ui,sans-serif;margin-bottom:16px;color:var(--muted)">Tap the <strong style="color:var(--text)">Budget</strong> tab. You will see six color-coded categories. Each one has line items with a <em>Budget</em> (what you plan) and an <em>Actual</em> (what you really spent).</p>
+
+  <div class="cat-grid">
+    <div class="cat-pill" style="background:#0d2918;color:#3fb950">🟢 Income</div>
+    <div class="cat-pill" style="background:#0d1f35;color:#58a6ff">🔵 Savings</div>
+    <div class="cat-pill" style="background:#2d2208;color:#d4a017">🟡 Bills</div>
+    <div class="cat-pill" style="background:#2d1a0d;color:#e8895a">🟠 Expenses</div>
+    <div class="cat-pill" style="background:#2d0d0d;color:#f85149">🔴 Debt</div>
+    <div class="cat-pill" style="background:#1e1535;color:#a78bfa">🟣 Investments</div>
+  </div>
+
+  <div class="steps" style="margin-top:16px">
+    <div class="step">
+      <div class="step-num" style="background:#b45309">1</div>
+      <div class="step-body">
+        <div class="step-title">Clear demo data first</div>
+        <div class="step-desc">Tap the 🗑️ trash icon next to each demo line item (like "Paycheck 1", "Rent", etc.) to remove the sample data.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#b45309">2</div>
+      <div class="step-body">
+        <div class="step-title">Add your income sources</div>
+        <div class="step-desc">Under <strong>Income</strong> → tap <strong>+ Add</strong> → enter the name (e.g. "Main Job"), budget amount, and actual amount. Add one line per income source.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#b45309">3</div>
+      <div class="step-body">
+        <div class="step-title">Add all other categories</div>
+        <div class="step-desc">Repeat for Savings, Bills, Expenses, Debt, and Investments. <strong>Tip:</strong> enter your budgeted amount first — the actual will update automatically after you sync your bank statement.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#b45309">4</div>
+      <div class="step-body">
+        <div class="step-title">Edit actuals anytime</div>
+        <div class="step-desc">The <strong>Actual</strong> field next to each item is a text box you can type directly into. Changes save automatically.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip blue"><div class="tip-icon">💡</div><div><strong>Important naming tip:</strong> When you later import transactions from your bank, the app matches them by subcategory name. So name your budget line items to match your bank's transaction descriptions as closely as possible.<br><br>For example: name your bill <strong>"T-Mobile"</strong> instead of "Phone Bill" so the app can automatically mark it paid when it sees a T-Mobile charge in your statement.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 3. DEBT PAYOFF PLANNER -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="debtplanner">
+  <div class="section-header">
+    <div class="section-icon" style="background:#ede9fe">💳</div>
+    <div>
+      <div class="section-title">3. Debt Payoff Planner</div>
+      <div class="section-desc">Get a personalized month-by-month plan to become debt-free faster</div>
+    </div>
+  </div>
+
+  <p style="font-size:14px;font-family:system-ui,sans-serif;margin-bottom:16px;color:var(--muted)">The Debt Payoff Planner is found at the <strong style="color:var(--text)">bottom of the Budget tab</strong>. It calculates exactly how much to pay on each debt every month to pay everything off as fast as possible — and shows you how much interest you'll save compared to just making minimum payments.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#7c3aed">1</div>
+      <div class="step-body">
+        <div class="step-title">Go to Budget tab → scroll to the bottom</div>
+        <div class="step-desc">You'll see the <strong>💳 Debt Payoff Planner</strong> section below your budget categories. Tap <strong>+ Add Debt</strong> to begin.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#7c3aed">2</div>
+      <div class="step-body">
+        <div class="step-title">Add each debt you're paying off</div>
+        <div class="step-desc">For each credit card, loan, or balance, enter:<br>
+          • <strong>Debt Name</strong> — e.g. "Chase Visa" or "Car Loan"<br>
+          • <strong>Current Balance</strong> — how much you still owe<br>
+          • <strong>APR (Interest Rate %)</strong> — found on your monthly statement or card website<br>
+          • <strong>Minimum Monthly Payment</strong> — the minimum required payment
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#7c3aed">3</div>
+      <div class="step-body">
+        <div class="step-title">Enter your extra monthly payment</div>
+        <div class="step-desc">In the <strong>"Extra $ toward debt each month"</strong> field, enter any amount above your minimums you can afford to put toward debt. Even $50–$100 extra per month makes a significant difference.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#7c3aed">4</div>
+      <div class="step-body">
+        <div class="step-title">Choose your strategy</div>
+        <div class="step-desc">
+          <strong>❄️ Snowball</strong> — Pay off the smallest balance first. You get quick wins as debts disappear, which keeps you motivated. Great if you need encouragement to stay on track.<br><br>
+          <strong>🌊 Avalanche</strong> — Pay off the highest interest rate first. This saves the most money overall and gets you debt-free the fastest mathematically. Best if you're disciplined and want to minimize total interest paid.
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#7c3aed">5</div>
+      <div class="step-body">
+        <div class="step-title">Read your plan</div>
+        <div class="step-desc">The planner shows a table with every debt, the suggested payment for this month, and when each debt will be paid off. The <strong style="color:#7c3aed">FOCUS</strong> debt is the one to attack with your extra payment this month.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#ede9fe;border-left:4px solid #7c3aed;border-radius:10px;padding:14px 18px;margin:16px 0;font-size:13px;font-family:system-ui,sans-serif;line-height:1.7">
+    <strong>📊 How to read the summary cards at the bottom:</strong><br>
+    • <strong>Total Debt</strong> — combined balance across all your debts<br>
+    • <strong>Total Minimums/mo</strong> — total you must pay just to stay current<br>
+    • <strong>Debt-Free In</strong> — estimated months until all debt is eliminated with your plan<br>
+    • <strong>Debt-Free Date</strong> — the actual calendar month you'll be debt-free<br>
+    • <strong>Interest Saved</strong> — how much less interest you'll pay vs. minimums only<br>
+    • <strong>Time Saved</strong> — how many months earlier you'll be debt-free vs. minimums only
+  </div>
+
+  <div class="tip purple"><div class="tip-icon">💡</div><div><strong>Cascade effect:</strong> When you fully pay off one debt, the app automatically redirects that minimum payment toward the next debt in line. This is called "cascading" and is what makes the payoff accelerate over time — your payment stays the same but more of it goes toward principal each month.</div></div>
+  <div class="tip gold"><div class="tip-icon">⭐</div><div><strong>Where to find your APR:</strong> Look at your monthly statement, log in to your card/loan website, or call the number on the back of your card. It's listed as "APR," "Interest Rate," or "Purchase APR." Credit cards typically range from 18%–29%; car loans from 4%–12%.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 4. PAYCHECKS (renumbered) -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="paychecks">
+  <div class="section-header">
+    <div class="section-icon" style="background:#e6f4ea">💼</div>
+    <div>
+      <div class="section-title">4. Paychecks Tab</div>
+      <div class="section-desc">Track all income sources with automatic next-date calculation</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#238636">1</div>
+      <div class="step-body">
+        <div class="step-title">Tap "Add Paycheck"</div>
+        <div class="step-desc">Fill in: <strong>Label</strong> (e.g. "Main Job"), <strong>Employer/Source</strong> (your employer's name as it appears on your bank statement), <strong>Amount</strong>, <strong>Frequency</strong>, <strong>Next Pay Date</strong>.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#238636">2</div>
+      <div class="step-body">
+        <div class="step-title">Choose the right frequency</div>
+        <div class="step-desc">Options include: <strong>Weekly, Bi-weekly</strong> (every 2 weeks), <strong>Semi-monthly</strong> (twice a month), <strong>Monthly</strong>, and more.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#238636">3</div>
+      <div class="step-body">
+        <div class="step-title">View your totals</div>
+        <div class="step-desc">The tab automatically calculates your <strong>Monthly Gross</strong> and <strong>Annual Gross</strong> across all income sources combined.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tip green"><div class="tip-icon">🔄</div><div>After you sync your bank statement, the app automatically advances your <strong>Next Pay Date</strong> if it finds a matching deposit. You don't have to update it manually each pay period.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 4. BILLS CALENDAR -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="bills">
+  <div class="section-header">
+    <div class="section-icon" style="background:#fef3c7">📅</div>
+    <div>
+      <div class="section-title">5. Bills Calendar Tab</div>
+      <div class="section-desc">See every bill visually on the calendar and track what's paid</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#b45309">1</div>
+      <div class="step-body">
+        <div class="step-title">Add your recurring bills</div>
+        <div class="step-desc">Tap <strong>+ Add Bill</strong> → enter the bill name, amount, and the day of the month it's due (e.g. Rent is due on the 1st → enter "1").</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#b45309">2</div>
+      <div class="step-body">
+        <div class="step-title">Mark bills as paid</div>
+        <div class="step-desc">Tap the <strong>circle icon</strong> next to any bill to toggle it between paid ✅ and unpaid ⭕. You can also tap the bill directly on the calendar.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#b45309">3</div>
+      <div class="step-body">
+        <div class="step-title">Navigate months</div>
+        <div class="step-desc">Use the <strong>‹ ›</strong> arrows next to the month name to go back or forward to see past or upcoming bills.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tip green"><div class="tip-icon">🟢</div><div>Bills turn <strong>green</strong> on the calendar when paid, <strong>orange</strong> when unpaid. After syncing your bank statement, any bill whose name matches a bank transaction is automatically marked paid.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 5. TRANSACTIONS -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="transactions">
+  <div class="section-header">
+    <div class="section-icon" style="background:#f3f4f6">📋</div>
+    <div>
+      <div class="section-title">6. Transactions Tab</div>
+      <div class="section-desc">Your complete record of every income and expense</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#374151">1</div>
+      <div class="step-body">
+        <div class="step-title">Add a transaction manually</div>
+        <div class="step-desc">Tap <strong>+ Add</strong> → fill in Date, Merchant, Amount, Category, Subcategory, and an optional Note. Tap <strong>Save Transaction</strong>.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#374151">2</div>
+      <div class="step-body">
+        <div class="step-title">Import from your bank (recommended)</div>
+        <div class="step-desc">Tap <strong>📥 Import CSV</strong> to import directly from your bank statement. See Section 6 for full instructions.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#374151">3</div>
+      <div class="step-body">
+        <div class="step-title">Delete a transaction</div>
+        <div class="step-desc">Tap the <strong>🗑️ trash icon</strong> on the right side of any row to remove it.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tip gold"><div class="tip-icon">⭐</div><div>For best sync results, always assign the correct <strong>Subcategory</strong> when adding transactions manually. This is what the app uses to update your budget actuals automatically.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 6. IMPORTING CSV -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="import">
+  <div class="section-header">
+    <div class="section-icon" style="background:#e6f4ea">📁</div>
+    <div>
+      <div class="section-title">7. Importing Your Bank or Credit Card Statement</div>
+      <div class="section-desc">Turn weeks of manual entry into a 2-minute task</div>
+    </div>
+  </div>
+
+  <p style="font-size:14px;font-family:system-ui,sans-serif;margin-bottom:16px;color:var(--muted)"><strong style="color:var(--text)">Step A — Download your CSV from your bank</strong></p>
+  <table class="bank-table">
+    <thead><tr><th>Bank / Card</th><th>Where to find CSV download</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Chase</strong> (bank or credit card)</td><td>Log in → Accounts → select account → Activity → Download → choose CSV → select date range → Download</td></tr>
+      <tr><td><strong>Bank of America</strong></td><td>Log in → Accounts → Transactions → Download → Microsoft Excel format (CSV)</td></tr>
+      <tr><td><strong>Wells Fargo</strong></td><td>Log in → Accounts → Activity → Export → CSV</td></tr>
+      <tr><td><strong>Discover</strong></td><td>Log in → Statements & Activity → Download → CSV</td></tr>
+      <tr><td><strong>American Express</strong></td><td>Log in → Statements → Download Transactions → CSV format</td></tr>
+      <tr><td><strong>Capital One</strong></td><td>Log in → Account → Download Transactions → CSV</td></tr>
+    </tbody>
+  </table>
+
+  <p style="font-size:14px;font-family:system-ui,sans-serif;margin:20px 0 14px;color:var(--muted)"><strong style="color:var(--text)">Step B — Import into BudgetPro</strong></p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#238636">1</div>
+      <div class="step-body">
+        <div class="step-title">Go to the Transactions tab</div>
+        <div class="step-desc">Tap <strong>📥 Import CSV</strong> button (next to "+ Add").</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#238636">2</div>
+      <div class="step-body">
+        <div class="step-title">Upload your file</div>
+        <div class="step-desc">Drag your downloaded CSV file onto the drop zone, or tap <strong>Choose File</strong> to browse. The app detects your bank automatically.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#238636">3</div>
+      <div class="step-body">
+        <div class="step-title">Check the column mapping</div>
+        <div class="step-desc">The app pre-fills the Date, Description, and Amount columns based on your bank's format. Verify they look correct in the <strong>preview table</strong> — you should see real transaction dates and amounts.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#238636">4</div>
+      <div class="step-body">
+        <div class="step-title">Set your default category</div>
+        <div class="step-desc">Choose a category like <strong>Expenses</strong> for most bank accounts. Income deposits are detected automatically. Credit card charges default to whatever you choose here.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#238636">5</div>
+      <div class="step-body">
+        <div class="step-title">Tap "Import X Transactions"</div>
+        <div class="step-desc">All transactions are added instantly. The app immediately runs an auto-sync to update your budget, bills, and paychecks.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip blue"><div class="tip-icon">💳</div><div><strong>Credit cards work the same way.</strong> Download the CSV from your credit card's website and follow the same steps. Charges import as Expenses. Payments import as Income (since they reduce what you owe).</div></div>
+  <div class="tip green"><div class="tip-icon">🔒</div><div><strong>Your data is 100% private.</strong> The CSV file is read entirely inside your browser — nothing is uploaded to any server or sent over the internet.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 7. SYNC FEATURE -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="sync">
+  <div class="section-header">
+    <div class="section-icon" style="background:#e6f4ea">🔄</div>
+    <div>
+      <div class="section-title">8. The Sync Feature</div>
+      <div class="section-desc">One tap updates the entire app from your transaction data</div>
+    </div>
+  </div>
+
+  <p style="font-size:14px;font-family:system-ui,sans-serif;margin-bottom:16px;color:var(--muted)">Sync runs <strong style="color:var(--text)">automatically</strong> after every import. You can also run it anytime manually by tapping <strong style="color:var(--text)">🔄 Sync Now</strong> on the Dashboard.</p>
+
+  <p style="font-size:14px;font-family:system-ui,sans-serif;margin-bottom:14px;font-weight:600;color:var(--text)">What sync does automatically:</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#7c3aed">✓</div>
+      <div class="step-body">
+        <div class="step-title">Updates Budget actuals</div>
+        <div class="step-desc">Sums all transactions by category and subcategory and fills in the <strong>Actual</strong> column on the Budget tab. For example: if you have 3 Grocery transactions totaling $312, the Groceries budget line actual becomes $312.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#7c3aed">✓</div>
+      <div class="step-body">
+        <div class="step-title">Marks bills as paid</div>
+        <div class="step-desc">Looks for transactions whose merchant name matches a bill name (e.g. "T-Mobile" matches your Cellphone bill). Any match is automatically marked ✅ Paid on the Bills tab.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#7c3aed">✓</div>
+      <div class="step-body">
+        <div class="step-title">Advances paycheck dates</div>
+        <div class="step-desc">When an income deposit matches a paycheck source, the <strong>Next Pay Date</strong> on the Paychecks tab advances by your pay frequency automatically.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#7c3aed">✓</div>
+      <div class="step-body">
+        <div class="step-title">Refreshes the Dashboard</div>
+        <div class="step-desc">All charts and KPI cards (Total Income, Total Outflow, Left to Spend, Left to Budget) instantly reflect your real numbers.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip gold"><div class="tip-icon">💡</div><div><strong>When to sync manually:</strong> If you add transactions by hand (not via import), tap <strong>🔄 Sync Now</strong> on the Dashboard to push those updates through to your Budget actuals and Bills status.</div></div>
+  <div class="tip gold"><div class="tip-icon">⚡</div><div><strong>Best practice:</strong> Import your bank statement once a week or at the end of each month. Sync runs automatically each time, keeping everything current with minimal effort.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 8. DASHBOARD -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="dashboard">
+  <div class="section-header">
+    <div class="section-icon" style="background:#e8f0fe">📊</div>
+    <div>
+      <div class="section-title">9. Reading Your Dashboard</div>
+      <div class="section-desc">Your complete financial picture at a glance</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#1a56db">①</div>
+      <div class="step-body">
+        <div class="step-title">Top KPI Cards</div>
+        <div class="step-desc"><strong style="color:#238636">Total Income</strong> — all money coming in. <strong style="color:#dc2626">Total Outflow</strong> — all money going out. <strong style="color:#b45309">Left to Spend</strong> — income minus actual spending. <strong style="color:#1a56db">Left to Budget</strong> — planned income minus planned spending.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#1a56db">②</div>
+      <div class="step-body">
+        <div class="step-title">Budget vs. Actual Bar Chart</div>
+        <div class="step-desc">Dark green bars = what you <em>budgeted</em>. Bright green bars = what you <em>actually</em> spent. If a bright bar is taller than a dark bar, you went over budget in that category.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#1a56db">③</div>
+      <div class="step-body">
+        <div class="step-title">Spending Breakdown Pie Chart</div>
+        <div class="step-desc">Shows where your money went across Savings, Bills, Expenses, Debt, and Investments. Hover or tap any slice to see the dollar amount.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#1a56db">④</div>
+      <div class="step-body">
+        <div class="step-title">Circular Gauge Dials</div>
+        <div class="step-desc">Visual progress rings showing how much of your income is left to spend vs. budget. The fuller the ring, the more you have left.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#1a56db">⑤</div>
+      <div class="step-body">
+        <div class="step-title">Upcoming Paychecks &amp; Recent Transactions</div>
+        <div class="step-desc">Quick summary of your next expected pay dates and your 6 most recent transactions.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 9. EXPORTING -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="export">
+  <div class="section-header">
+    <div class="section-icon" style="background:#e6f4ea">⬇️</div>
+    <div>
+      <div class="section-title">10. Exporting Your Data</div>
+      <div class="section-desc">Download your data to Excel or Google Sheets anytime</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num" style="background:#238636">1</div>
+      <div class="step-body">
+        <div class="step-title">Tap "⬇ Export CSV" in the top bar</div>
+        <div class="step-desc">Four CSV files will download automatically: <strong>Budget Summary, Transactions, Bills,</strong> and <strong>Paychecks</strong>.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:#238636">2</div>
+      <div class="step-body">
+        <div class="step-title">Open in Excel or Google Sheets</div>
+        <div class="step-desc">Each file opens directly in Excel 365 or Google Sheets. You can format, chart, or share them however you like.</div>
+      </div>
+    </div>
+  </div>
+  <div class="tip blue"><div class="tip-icon">💾</div><div><strong>Back up monthly.</strong> Export your data at the end of each month and save the files to Google Drive or iCloud. This protects you if you ever clear your browser data.</div></div>
+</div>
+
+<hr class="divider">
+
+<!-- ──────────────────────────────────────────────── -->
+<!-- 10. FAQ -->
+<!-- ──────────────────────────────────────────────── -->
+<div class="section" id="faq">
+  <div class="section-header">
+    <div class="section-icon" style="background:#f3f4f6">❓</div>
+    <div>
+      <div class="section-title">11. Frequently Asked Questions</div>
+      <div class="section-desc">Common questions from beta testers</div>
+    </div>
+  </div>
+  <div class="faq">
+    <div class="faq-item">
+      <div class="faq-q">💬 Which strategy should I choose — Snowball or Avalanche?</div>
+      <div class="faq-a">If your debts are similar in balance, choose <strong>Avalanche</strong> — it saves the most money. If you have one very small debt you can knock out quickly, start with <strong>Snowball</strong> for the motivational boost, then switch to Avalanche. You can change the strategy anytime and the planner recalculates instantly.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">💬 The debt planner says I'll be debt-free in X months — is that accurate?</div>
+      <div class="faq-a">It's a close estimate based on your current balance, APR, and payment amount, assuming you make the suggested payment every month without missing one. Real-world results may vary slightly due to billing cycles and rounding, but the planner gives you a solid target to aim for.</div>
+    </div>
+      <div class="faq-a">The sync matches transactions to budget line items using the <strong>Subcategory</strong> field. If a transaction's subcategory is blank or doesn't exactly match a budget item name, it won't update that line. Fix it by editing the transaction's subcategory to match the budget item name, then sync again.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">💬 A bill wasn't automatically marked paid — why?</div>
+      <div class="faq-a">The sync looks for a transaction merchant name that contains or matches your bill name. Try renaming your bill to match exactly how your bank lists the payee — for example, change "Phone Bill" to "T-Mobile" if that's how it appears in your bank statement.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">💬 Can I import multiple bank statements at once?</div>
+      <div class="faq-a">Yes — import them one at a time. Each import adds to your existing transactions. Duplicate transactions won't be removed automatically, so avoid importing the same date range twice.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">💬 Can my husband and I share the same data?</div>
+      <div class="faq-a">Not in real-time — each person's browser stores their own data. The recommended approach is for one person to be the primary manager, export CSV monthly, and share those files with the other person for review.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">💬 I accidentally deleted something — can I undo it?</div>
+      <div class="faq-a">Not directly. This is why it's important to export your data regularly. If you export before making big changes, you'll always have a backup to reference.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">💬 How do I start a new month fresh?</div>
+      <div class="faq-a">You don't need to reset anything. The app is designed to accumulate data over time. For bills, you'll need to uncheck paid bills at the start of each month. Budget actuals will update automatically when you import and sync your next bank statement.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">💬 How do I leave feedback about the app?</div>
+      <div class="faq-a">Tap the green <strong>"Leave Feedback →"</strong> banner at the very top of the app. Your input helps improve the app before it's released publicly — every suggestion counts!</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;font-family:system-ui,sans-serif;line-height:1.8">
+  <p style="font-size:16px;margin-bottom:6px">💰 BudgetPro</p>
+  <p>Beta Version 1.0 · For personal and family use</p>
+  <p>Have a question not covered here? Drop it in the feedback form!</p>
+</div>
+
+</div><!-- end .page -->
+</body>
+</html>
